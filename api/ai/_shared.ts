@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { randomUUID } from 'node:crypto';
 import type { RecipeDraft, RecipeDifficulty } from '../../src/types/recipe.js';
 
 export function getOpenAI() {
@@ -14,6 +15,23 @@ export function model() {
 
 export function sendJson(res: { status: (code: number) => { json: (body: unknown) => void } }, status: number, body: unknown) {
   res.status(status).json(body);
+}
+
+export function sendError(res: { status: (code: number) => { json: (body: unknown) => void } }, error: unknown, fallback: string) {
+  const maybe = error as { status?: number; code?: string; type?: string; message?: string };
+  const status = typeof maybe.status === 'number' ? maybe.status : 500;
+  const message = maybe.message || fallback;
+  console.error(fallback, {
+    status,
+    code: maybe.code,
+    type: maybe.type,
+    message
+  });
+  res.status(status).json({
+    error: message,
+    code: maybe.code,
+    type: maybe.type
+  });
 }
 
 export function readBody<T>(body: unknown): T {
@@ -49,7 +67,7 @@ export function normalizeRecipeDraft(input: unknown, sourceText?: string): Recip
       .map((item) => {
         const ingredient = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
         return {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           quantity: cleanText(ingredient.quantity),
           unit: cleanText(ingredient.unit),
           name: cleanText(ingredient.name),
@@ -61,7 +79,7 @@ export function normalizeRecipeDraft(input: unknown, sourceText?: string): Recip
       .map((item, index) => {
         const step = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
         return {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           order: index + 1,
           text: cleanText(step.text || item)
         };
@@ -74,7 +92,7 @@ export function normalizeRecipeDraft(input: unknown, sourceText?: string): Recip
   };
 
   if (draft.ingredients.length === 0 && draft.steps.length === 0 && sourceText) {
-    draft.steps = [{ id: crypto.randomUUID(), order: 1, text: sourceText.slice(0, 1600) }];
+    draft.steps = [{ id: randomUUID(), order: 1, text: sourceText.slice(0, 1600) }];
   }
 
   return draft;

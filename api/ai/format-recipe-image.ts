@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getOpenAI, model, normalizeRecipeDraft, parseJsonObject, readBody, recipeJsonInstruction, sendJson } from './_shared.js';
+import { getOpenAI, model, normalizeRecipeDraft, parseJsonObject, readBody, recipeJsonInstruction, sendError, sendJson } from './_shared.js';
 
 type Body = {
   imageDataUrl?: string;
@@ -17,9 +17,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const client = getOpenAI();
-    const response = await client.responses.create({
+    const response = await client.chat.completions.create({
       model: model(),
-      input: [
+      temperature: 0.1,
+      response_format: { type: 'json_object' },
+      messages: [
         {
           role: 'system',
           content: 'Tu es un assistant culinaire francais. Lis le contenu visible sur une image de recette et retourne uniquement un JSON valide. Ne fais pas de markdown. Si une information manque, laisse le champ vide.'
@@ -28,19 +30,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           role: 'user',
           content: [
             {
-              type: 'input_text',
+              type: 'text',
               text: `${recipeJsonInstruction}\n\nLocale: ${body.locale || 'fr-FR'}\nIndice optionnel: ${body.optionalHint || ''}`
             },
-            { type: 'input_image', image_url: body.imageDataUrl }
+            { type: 'image_url', image_url: { url: body.imageDataUrl } }
           ]
         }
-      ],
-      text: { format: { type: 'json_object' } }
-    } as any);
+      ]
+    });
 
-    const json = parseJsonObject((response as any).output_text || '{}');
+    const json = parseJsonObject(response.choices[0]?.message?.content || '{}');
     return sendJson(res, 200, { recipe: normalizeRecipeDraft(json) });
   } catch (error) {
-    return sendJson(res, 500, { error: error instanceof Error ? error.message : 'Erreur OpenAI vision.' });
+    return sendError(res, error, 'Erreur OpenAI pendant le formatage image.');
   }
 }

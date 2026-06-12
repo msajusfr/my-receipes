@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getOpenAI, model, readBody, sendJson } from './_shared.js';
+import { getOpenAI, model, readBody, sendError, sendJson } from './_shared.js';
 import type { Recipe } from '../../src/types/recipe.js';
 
 type Body = {
@@ -41,12 +41,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sources: []
     });
   } catch (error) {
-    const unavailable = bodyAllowsWebSearch(req.body);
-    return sendJson(res, 500, {
-      error: unavailable
-        ? "Le chat IA n'est pas disponible ou la recherche web n'est pas supportee par ce modele."
-        : error instanceof Error ? error.message : 'Erreur OpenAI.'
-    });
+    const fallback = bodyAllowsWebSearch(req.body)
+      ? "Le chat IA n'est pas disponible ou la recherche web n'est pas supportee par ce modele."
+      : 'Erreur OpenAI pendant le chat recette.';
+    return sendError(res, error, fallback);
   }
 }
 
