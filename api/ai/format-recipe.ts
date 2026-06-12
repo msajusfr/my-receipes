@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getOpenAI, model, normalizeRecipeDraft, parseJsonObject, readBody, recipeJsonInstruction, sendJson } from './_shared';
+import { getOpenAI, model, normalizeRecipeDraft, parseJsonObject, readBody, recipeJsonInstruction, sendJson } from './_shared.js';
 
 type Body = {
   sourceText?: string;

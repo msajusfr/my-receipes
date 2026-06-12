@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { RecipeDraft, RecipeDifficulty } from '../../src/types/recipe';
+import type { RecipeDraft, RecipeDifficulty } from '../../src/types/recipe.js';
 
 export function getOpenAI() {
   if (!process.env.OPENAI_API_KEY) {

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getOpenAI, model, readBody, sendJson } from './_shared';
-import type { Recipe } from '../../src/types/recipe';
+import { getOpenAI, model, readBody, sendJson } from './_shared.js';
+import type { Recipe } from '../../src/types/recipe.js';
 
 type Body = {
   recipe?: Recipe;
