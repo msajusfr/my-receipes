@@ -24,6 +24,15 @@ npm install
 npm run dev
 ```
 
+Cette commande lance uniquement Vite. Les routes `api/ai/*` sont des Vercel Functions : pour tester l'IA en local, utilisez plutot Vercel CLI avec une cle OpenAI locale :
+
+```bash
+vercel env pull .env.local
+vercel dev
+```
+
+Ou testez directement sur le deploiement Vercel apres avoir ajoute `OPENAI_API_KEY` dans les variables d'environnement du projet.
+
 ## Build
 
 ```bash
@@ -40,6 +49,8 @@ Copiez `.env.example` vers `.env.local` en local, ou ajoutez les variables dans 
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4.1-mini
 ```
+
+Si vous ajoutez ou modifiez `OPENAI_API_KEY` dans Vercel apres un deploiement, redeployez l'application pour que les fonctions la prennent en compte. Verifiez aussi que la variable est disponible dans le bon environnement Vercel : Production, Preview ou Development.
 
 Endpoints :
 

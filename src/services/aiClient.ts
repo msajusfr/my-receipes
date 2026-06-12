@@ -8,8 +8,14 @@ async function requestJson<T>(url: string, body: unknown): Promise<T> {
     body: JSON.stringify(body)
   });
 
-  const data = await response.json().catch(() => ({}));
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json') ? await response.json().catch(() => ({})) : {};
   if (!response.ok) {
+    if (response.status === 404 && url.startsWith('/api/')) {
+      throw new Error(
+        "Les fonctions IA ne sont pas lancees sur ce serveur local. Utilisez le deploiement Vercel, ou lancez l'app avec `vercel dev` apres avoir configure OPENAI_API_KEY."
+      );
+    }
     throw new Error(data.error || "Le service IA n'est pas disponible pour le moment.");
   }
   return data as T;
